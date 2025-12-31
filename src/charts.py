@@ -71,7 +71,7 @@ def plot_grade_distribution(grades, student_name):
 
     # Plot
     plt.figure(figsize=(8, 6))
-    sns.barplot(x=grades_list, y=counts, palette="viridis")
+    sns.barplot(x=grades_list, y=counts, hue=grades_list, palette="viridis", legend=False)
     plt.title(f"Grade Distribution for {student_name}")
     plt.xlabel("Grade")
     plt.ylabel("Count")

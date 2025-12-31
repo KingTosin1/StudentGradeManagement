@@ -5,6 +5,7 @@ This module defines the ChartsWindow class for displaying charts.
 """
 
 import tkinter as tk
+import customtkinter as ctk
 from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from src.charts import plot_gpa_trend, plot_grade_distribution
@@ -17,34 +18,48 @@ class ChartsWindow:
     def __init__(self, root, app_instance):
         self.root = root
         self.app = app_instance
-        self.window = tk.Toplevel(root)
+        self.window = ctk.CTkToplevel(root)
         self.window.title("Charts")
         self.window.geometry("800x600")
 
+        # Center the window
+        self.window.transient(root)
+        self.window.grab_set()
+
+        # Title
+        self.title_label = ctk.CTkLabel(self.window, text="Charts & Analytics",
+                                       font=ctk.CTkFont(size=20, weight="bold"))
+        self.title_label.pack(pady=(20, 10))
+
         # Student selector
-        tk.Label(self.window, text="Select Student:").pack(pady=5)
-        self.student_var = tk.StringVar()
-        self.student_combo = ttk.Combobox(self.window, textvariable=self.student_var)
-        self.student_combo['values'] = [f"{s.student_id} - {s.name}" for s in self.app.students]
-        self.student_combo.pack(pady=5)
-        self.student_combo.bind("<<ComboboxSelected>>", self.update_charts)
+        student_frame = ctk.CTkFrame(self.window, fg_color="transparent")
+        student_frame.pack(pady=10, padx=20, fill="x")
+        self.student_label = ctk.CTkLabel(student_frame, text="Select Student:")
+        self.student_label.pack(side="left", padx=(0, 10))
+        self.student_var = ctk.StringVar()
+        self.student_combo = ctk.CTkComboBox(student_frame, variable=self.student_var,
+                                            values=[f"{s.student_id} - {s.name}" for s in self.app.students],
+                                            command=self.update_charts)
+        self.student_combo.pack(side="left", fill="x", expand=True)
 
         # Tabbed interface
-        self.tab_control = ttk.Notebook(self.window)
-        self.tab_control.pack(fill=tk.BOTH, expand=True)
+        self.tab_control = ctk.CTkTabview(self.window, width=750, height=450)
+        self.tab_control.pack(pady=10, padx=20)
 
         # GPA Trend Tab
-        self.gpa_tab = tk.Frame(self.tab_control)
-        self.tab_control.add(self.gpa_tab, text="GPA Trend")
+        self.tab_control.add("GPA Trend")
+        self.gpa_tab = self.tab_control.tab("GPA Trend")
         self.gpa_canvas = None
 
         # Grade Distribution Tab
-        self.dist_tab = tk.Frame(self.tab_control)
-        self.tab_control.add(self.dist_tab, text="Grade Distribution")
+        self.tab_control.add("Grade Distribution")
+        self.dist_tab = self.tab_control.tab("Grade Distribution")
         self.dist_canvas = None
 
         # Export button
-        tk.Button(self.window, text="Export Chart", command=self.export_chart).pack(pady=10)
+        self.export_btn = ctk.CTkButton(self.window, text="Export Chart", command=self.export_chart,
+                                       height=35, font=ctk.CTkFont(size=12, weight="bold"))
+        self.export_btn.pack(pady=(10, 20), padx=20, fill="x")
 
     def update_charts(self, event):
         """Updates the charts for the selected student."""
@@ -76,9 +91,9 @@ class ChartsWindow:
     def export_chart(self):
         """Exports the current chart as PNG."""
         # Placeholder: Export the active tab's chart
-        current_tab = self.tab_control.index(self.tab_control.select())
-        if current_tab == 0 and self.gpa_canvas:
+        current_tab = self.tab_control.get()
+        if current_tab == "GPA Trend" and self.gpa_canvas:
             plot_gpa_trend([], "Exported")  # Re-plot to save
-        elif current_tab == 1 and self.dist_canvas:
+        elif current_tab == "Grade Distribution" and self.dist_canvas:
             plot_grade_distribution([], "Exported")  # Re-plot to save
         # Note: Actual export logic in charts.py save_chart function
